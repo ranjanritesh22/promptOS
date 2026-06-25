@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptOS</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="head">
+        <span class="logo">✦</span>
+        <div>
+          <h1>PromptOS</h1>
+          <p class="sub">Optimize your prompt — fewer tokens, clearer context.</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <label class="field-label" for="input">Your prompt</label>
+        <textarea id="input" placeholder="Paste or type a prompt to optimize…" spellcheck="false"></textarea>
+        <div class="row">
+          <button id="pull" class="btn btn--ghost" title="Pull text from the active chat box">⤓ From page</button>
+          <button id="optimize" class="btn btn--primary">✦ Optimize</button>
+        </div>
+      </section>
+
+      <section id="result" class="card result hidden">
+        <div class="stats">
+          <span class="pill" id="stat-tokens"></span>
+          <span class="pill" id="stat-saved"></span>
+        </div>
+        <textarea id="output" spellcheck="false" readonly></textarea>
+        <div class="row">
+          <button id="copy" class="btn btn--ghost">Copy</button>
+          <button id="apply" class="btn btn--primary">Apply to chat</button>
+        </div>
+        <details class="changes" id="changes-wrap">
+          <summary id="changes-summary"></summary>
+          <ul id="changes-list"></ul>
+        </details>
+      </section>
+
+      <section class="controls card">
+        <div class="control">
+          <label for="aggressiveness">Strength</label>
+          <select id="aggressiveness">
+            <option value="light">Light — safe cleanups only</option>
+            <option value="balanced">Balanced — tighten wording</option>
+            <option value="aggressive">Aggressive — max savings</option>
+          </select>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="restructure" />
+          <span>Restructure into sections</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="showInlineButton" />
+          <span>Show Optimize button in chat boxes</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="autoApply" />
+          <span>Apply instantly (skip preview)</span>
+        </label>
+      </section>
+
+      <footer class="foot">
+        <a id="open-options" href="#">Settings</a>
+        <span class="ver" id="version"></span>
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

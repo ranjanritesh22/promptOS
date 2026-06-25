@@ -1,0 +1,25 @@
+{
+  "name": "promptos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PromptOS — an AI Prompt Composer. Optimize prompts to be concise, token-friendly, and well-structured.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:core": "npm run build --workspace @promptos/core",
+    "build:extension": "npm run build --workspace @promptos/extension",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspace @promptos/core",
+    "dev:extension": "npm run dev --workspace @promptos/extension",
+    "dev:web": "npm run dev --workspace @promptos/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

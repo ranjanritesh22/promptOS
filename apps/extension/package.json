@@ -1,0 +1,20 @@
+{
+  "name": "@promptos/extension",
+  "version": "0.1.0",
+  "description": "PromptOS Chrome extension — optimize your prompt directly inside any AI chat box.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@promptos/core": "*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.4"
+  }
+}

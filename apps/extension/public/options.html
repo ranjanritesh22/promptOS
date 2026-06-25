@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptOS · Settings</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body { background: #0b0d12; }
+      .options-wrap { max-width: 640px; margin: 0 auto; padding: 32px 24px 64px; }
+      .welcome { background: linear-gradient(135deg, #1b2433, #11151d); border: 1px solid #232b3a; border-radius: 14px; padding: 20px; margin-bottom: 24px; }
+      .welcome h2 { margin: 0 0 6px; font-size: 18px; }
+      .welcome p { margin: 0; color: #9aa6b9; font-size: 14px; line-height: 1.5; }
+      .options-wrap h1 { font-size: 24px; }
+      .control { margin-bottom: 14px; }
+      .platforms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .platforms .pill { background: #1a212e; }
+    </style>
+  </head>
+  <body>
+    <div class="options-wrap">
+      <header class="head" style="margin-bottom: 20px;">
+        <span class="logo">✦</span>
+        <div>
+          <h1>PromptOS</h1>
+          <p class="sub">Local-first prompt optimization. Nothing you type leaves your browser.</p>
+        </div>
+      </header>
+
+      <div id="welcome" class="welcome hidden">
+        <h2>Welcome to PromptOS 🎉</h2>
+        <p>
+          Open ChatGPT, Claude, Gemini, Perplexity or Cursor, type a prompt, and click the
+          <strong>✦ Optimize</strong> button that appears in the composer. You can also optimize any
+          text from the toolbar popup.
+        </p>
+      </div>
+
+      <section class="card controls">
+        <div class="control">
+          <label for="aggressiveness">Strength</label>
+          <select id="aggressiveness">
+            <option value="light">Light — safe cleanups only</option>
+            <option value="balanced">Balanced — tighten wording</option>
+            <option value="aggressive">Aggressive — max savings</option>
+          </select>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="restructure" />
+          <span>Restructure prompts into Role / Context / Task / Constraints / Format</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="showInlineButton" />
+          <span>Show the Optimize button inside chat composers</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="autoApply" />
+          <span>Apply instantly without showing a preview</span>
+        </label>
+      </section>
+
+      <section class="card">
+        <label class="field-label">Supported platforms</label>
+        <div class="platforms">
+          <span class="pill">ChatGPT</span>
+          <span class="pill">Claude</span>
+          <span class="pill">Gemini</span>
+          <span class="pill">Perplexity</span>
+          <span class="pill">Cursor</span>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span class="ver" id="version"></span>
+      </footer>
+    </div>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
