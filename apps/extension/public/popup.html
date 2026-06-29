@@ -43,21 +43,12 @@
       </section>
 
       <section class="controls card">
-        <div class="control">
-          <label for="aggressiveness">Strength</label>
-          <select id="aggressiveness">
-            <option value="light">Light — safe cleanups only</option>
-            <option value="balanced">Balanced — tighten wording</option>
-            <option value="aggressive">Aggressive — max savings</option>
-          </select>
-        </div>
-        <label class="toggle">
+        <label class="toggle toggle--lead">
           <input type="checkbox" id="enhance" />
-          <span>Enhance — rewrite into a clear, intent-aware prompt</span>
-        </label>
-        <label class="toggle">
-          <input type="checkbox" id="restructure" />
-          <span>Restructure into sections</span>
+          <span>
+            <strong>Enhance</strong>
+            <small>Rewrite into a clear, structured prompt (coding, writing, planning, health…). Off = clean up grammar &amp; wording only.</small>
+          </span>
         </label>
         <label class="toggle">
           <input type="checkbox" id="showInlineButton" />

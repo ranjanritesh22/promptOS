@@ -4,16 +4,11 @@
  * options page.
  */
 
-import type { Aggressiveness } from "@promptos/core";
-
 export interface Settings {
-  /** Compression strength. */
-  aggressiveness: Aggressiveness;
-  /** Reorganize into Role/Context/Task/Constraints/Format sections. */
-  restructure: boolean;
   /**
    * Rewrite the prompt into a canonical, intent-specific template
-   * (coding / planning / writing / health / ...). Supersedes `restructure`.
+   * (coding / planning / writing / health / ...). When off, PromptOS just
+   * cleans up grammar, spelling, and wordiness.
    */
   enhance: boolean;
   /** Show the floating Optimize button inside supported chat boxes. */
@@ -23,8 +18,6 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  aggressiveness: "balanced",
-  restructure: false,
   enhance: false,
   showInlineButton: true,
   autoApply: false,

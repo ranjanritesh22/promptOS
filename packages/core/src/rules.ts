@@ -7,6 +7,7 @@
  */
 
 import {
+  CONTRACTIONS,
   FILLER_OPENERS,
   HEDGES_AND_INTENSIFIERS,
   POLITENESS,
@@ -17,6 +18,26 @@ import type { AppliedChange, Rule, RuleOutput } from "./types.js";
 /** Escape a string for safe use inside a RegExp. */
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Vowel-letter words that take "a" (consonant sound): "a university". */
+const A_BEFORE_VOWEL_LETTER = new Set([
+  "university", "universal", "unique", "unicorn", "unit", "union", "united",
+  "user", "useful", "used", "usable", "usage", "european", "euro", "one",
+  "once", "ubiquitous", "utopia", "ufo", "url", "ui", "ux",
+]);
+
+/** Consonant-letter words that take "an" (silent h / vowel sound): "an hour". */
+const AN_BEFORE_CONSONANT_LETTER = new Set([
+  "hour", "honest", "honestly", "honor", "honour", "honorable", "heir", "heirloom",
+]);
+
+/** Choose the correct indefinite article ("a"/"an") for the following word. */
+function correctArticle(nextWord: string): "a" | "an" {
+  const w = nextWord.toLowerCase();
+  if (A_BEFORE_VOWEL_LETTER.has(w)) return "a";
+  if (AN_BEFORE_CONSONANT_LETTER.has(w)) return "an";
+  return /^[aeiou]/.test(w) ? "an" : "a";
 }
 
 /** Build a single recorded change, or return nothing when count is zero. */
@@ -198,6 +219,58 @@ export const tidyPunctuation: Rule = {
   },
 };
 
+/**
+ * Grammar & English cleanup (always on).
+ *
+ * Fixes the things that make a quickly-typed or non-native-English prompt read
+ * poorly: missing apostrophes/contractions, common misspellings, a lone "i",
+ * sentence capitalization, spacing after punctuation, and a missing full stop.
+ * This is what makes the default "Optimize" always improve the prompt, even
+ * when there is nothing to compress.
+ */
+export const tidyGrammar: Rule = {
+  id: "tidy-grammar",
+  minLevel: "light",
+  apply(input): RuleOutput {
+    const before = input;
+    let text = input;
+
+    // 1. Informal spellings / missing apostrophes / typos → standard English.
+    for (const [wrong, right] of CONTRACTIONS) {
+      text = text.replace(new RegExp(`\\b${escapeRegExp(wrong)}\\b`, "gi"), right);
+    }
+
+    // 2. A standalone lowercase "i" → "I".
+    text = text.replace(/\bi\b/g, "I");
+
+    // 3. Fix the indefinite article ("a apple" → "an apple", "an book" → "a book").
+    text = text.replace(/\b(a|an)\s+([A-Za-z]+)/g, (full, article: string, word: string) => {
+      const correct = correctArticle(word);
+      if (correct === article.toLowerCase()) return full;
+      const isCapitalized = article.charAt(0) === article.charAt(0).toUpperCase();
+      const cased = isCapitalized ? correct.charAt(0).toUpperCase() + correct.slice(1) : correct;
+      return `${cased} ${word}`;
+    });
+
+    // 4. Ensure a single space after sentence punctuation (not inside numbers).
+    text = text.replace(/([,;:])(?=\S)/g, "$1 ");
+    text = text.replace(/([.!?])(?=[A-Za-z])/g, "$1 ");
+
+    // 5. Capitalize the first letter of each sentence.
+    text = text.replace(/(^|[.!?]\s+)([a-z])/g, (_m, pre: string, ch: string) => pre + ch.toUpperCase());
+
+    // 6. Add a terminal period if the prompt ends mid-sentence (letter/digit).
+    if (/[A-Za-z0-9]$/.test(text.trim())) {
+      text = `${text.trimEnd()}.`;
+    }
+
+    // Collapse any double spaces the fixes introduced.
+    text = text.replace(/[^\S\n]{2,}/g, " ").trim();
+
+    return { text, changes: change("tidy-grammar", "Fixed grammar, spelling, and capitalization", text === before ? 0 : 1) };
+  },
+};
+
 /** Ordered rule pipeline. Order matters: cleanups run last. */
 export const ALL_RULES: ReadonlyArray<Rule> = [
   collapseWhitespace,
@@ -207,4 +280,5 @@ export const ALL_RULES: ReadonlyArray<Rule> = [
   stripHedges,
   dedupeLines,
   tidyPunctuation,
+  tidyGrammar,
 ];

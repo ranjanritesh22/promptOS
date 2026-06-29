@@ -29,8 +29,6 @@ const els = {
   changesSummary: $<HTMLElement>("changes-summary"),
   changesList: $<HTMLUListElement>("changes-list"),
   intent: $<HTMLElement>("intent"),
-  aggressiveness: $<HTMLSelectElement>("aggressiveness"),
-  restructure: $<HTMLInputElement>("restructure"),
   enhance: $<HTMLInputElement>("enhance"),
   showInlineButton: $<HTMLInputElement>("showInlineButton"),
   autoApply: $<HTMLInputElement>("autoApply"),
@@ -75,13 +73,7 @@ function runOptimize(): void {
     els.input.focus();
     return;
   }
-  renderResult(
-    optimize(text, {
-      aggressiveness: settings.aggressiveness,
-      restructure: settings.restructure,
-      enhance: settings.enhance,
-    }),
-  );
+  renderResult(optimize(text, { enhance: settings.enhance }));
 }
 
 async function getActiveTab(): Promise<chrome.tabs.Tab | undefined> {
@@ -126,8 +118,6 @@ async function applyToPage(): Promise<void> {
 
 async function persist(): Promise<void> {
   settings = {
-    aggressiveness: els.aggressiveness.value as Settings["aggressiveness"],
-    restructure: els.restructure.checked,
     enhance: els.enhance.checked,
     showInlineButton: els.showInlineButton.checked,
     autoApply: els.autoApply.checked,
@@ -136,13 +126,11 @@ async function persist(): Promise<void> {
 }
 
 function bindSettings(): void {
-  els.aggressiveness.value = settings.aggressiveness;
-  els.restructure.checked = settings.restructure;
   els.enhance.checked = settings.enhance;
   els.showInlineButton.checked = settings.showInlineButton;
   els.autoApply.checked = settings.autoApply;
 
-  for (const el of [els.aggressiveness, els.restructure, els.enhance, els.showInlineButton, els.autoApply]) {
+  for (const el of [els.enhance, els.showInlineButton, els.autoApply]) {
     el.addEventListener("change", persist);
   }
 }

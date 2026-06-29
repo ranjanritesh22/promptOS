@@ -110,8 +110,6 @@ async function runOptimize(): Promise<void> {
   setButtonBusy(true);
   try {
     const result = optimize(text, {
-      aggressiveness: settings.aggressiveness,
-      restructure: settings.restructure,
       enhance: settings.enhance,
       platform: adapter.id,
     });

@@ -12,8 +12,18 @@ test("estimateTokens: empty and basic", () => {
 });
 
 test("optimize: collapses whitespace (light)", () => {
+  // Whitespace is collapsed; the always-on grammar pass also capitalizes the
+  // first letter and adds a terminal period.
   const r = optimize("hello     world\n\n\n\nfoo  ", { aggressiveness: "light" });
-  assert.equal(r.optimized, "hello world\n\nfoo");
+  assert.equal(r.optimized, "Hello world\n\nfoo.");
+});
+
+test("optimize: grammar fixes apostrophes, spelling, and a lone 'i'", () => {
+  const r = optimize("pls fix my code, it dont work and i cant run it", { aggressiveness: "light" });
+  assert.match(r.optimized, /don't/);
+  assert.match(r.optimized, /can't/);
+  assert.match(r.optimized, /\bI\b/);
+  assert.match(r.optimized, /\.$/);
 });
 
 test("optimize: replaces wordy phrases (balanced)", () => {

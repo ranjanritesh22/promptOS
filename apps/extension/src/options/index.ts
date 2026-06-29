@@ -15,22 +15,16 @@ function $<T extends HTMLElement>(id: string): T {
 async function init(): Promise<void> {
   const settings = await loadSettings();
 
-  const aggressiveness = $<HTMLSelectElement>("aggressiveness");
-  const restructure = $<HTMLInputElement>("restructure");
   const enhance = $<HTMLInputElement>("enhance");
   const showInlineButton = $<HTMLInputElement>("showInlineButton");
   const autoApply = $<HTMLInputElement>("autoApply");
 
-  aggressiveness.value = settings.aggressiveness;
-  restructure.checked = settings.restructure;
   enhance.checked = settings.enhance;
   showInlineButton.checked = settings.showInlineButton;
   autoApply.checked = settings.autoApply;
 
   const persist = async (): Promise<void> => {
     const next: Settings = {
-      aggressiveness: aggressiveness.value as Settings["aggressiveness"],
-      restructure: restructure.checked,
       enhance: enhance.checked,
       showInlineButton: showInlineButton.checked,
       autoApply: autoApply.checked,
@@ -38,7 +32,7 @@ async function init(): Promise<void> {
     await saveSettings(next);
   };
 
-  for (const el of [aggressiveness, restructure, enhance, showInlineButton, autoApply]) {
+  for (const el of [enhance, showInlineButton, autoApply]) {
     el.addEventListener("change", persist);
   }
 

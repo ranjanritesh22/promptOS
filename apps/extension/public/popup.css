@@ -122,6 +122,10 @@ select {
   cursor: pointer;
 }
 .toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+.toggle--lead { align-items: flex-start; }
+.toggle--lead input { margin-top: 2px; }
+.toggle--lead span { display: flex; flex-direction: column; gap: 2px; }
+.toggle--lead small { color: var(--muted); font-weight: 400; line-height: 1.35; }
 
 .foot { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
 .foot a { color: var(--accent); text-decoration: none; font-size: 12px; }
