@@ -1,16 +1,18 @@
 /**
- * The in-page preview panel shown after optimizing (when auto-apply is off).
+ * Non-blocking toast notification shown after the optimizer runs.
  *
- * It renders the optimized prompt, the token saving, and the list of changes,
- * then lets the user Apply (replace the composer text) or Cancel.
+ * Unlike a modal, the toast appears at the bottom of the page for a few
+ * seconds — the optimized text has already been written to the composer
+ * before the toast appears. Clicking Undo restores the original.
  */
 
 import type { OptimizeResult } from "@promptos/core";
 
-const PANEL_ID = "promptos-preview";
+const TOAST_ID = "promptos-toast";
+const AUTO_DISMISS_MS = 5000;
 
-interface PreviewHandlers {
-  onApply: () => void;
+interface ToastHandlers {
+  onUndo: () => void;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -24,100 +26,58 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-export function renderPreview(result: OptimizeResult, handlers: PreviewHandlers): void {
-  document.getElementById(PANEL_ID)?.remove();
+function buildMessage(result: OptimizeResult): string {
+  const { stats, changes } = result;
+  const desc = changes[0]?.description ?? "Optimized";
+  if (stats.saved > 0) return `${desc} · −${stats.saved} tokens`;
+  if (stats.saved < 0) return `${desc} · +${Math.abs(stats.saved)} tokens`;
+  return desc;
+}
 
-  const overlay = el("div");
-  overlay.id = PANEL_ID;
-  overlay.className = "promptos-overlay";
+export function renderPreview(result: OptimizeResult, handlers: { onApply: () => void; onUndo?: () => void }): void {
+  // Remove any existing toast first
+  document.getElementById(TOAST_ID)?.remove();
 
-  const panel = el("div", "promptos-panel");
-  overlay.appendChild(panel);
+  const toast = el("div", "promptos-toast");
+  toast.id = TOAST_ID;
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
 
-  // Header
-  const header = el("div", "promptos-panel__header");
-  header.appendChild(el("div", "promptos-panel__title", "PromptOS · Optimized prompt"));
-  const close = el("button", "promptos-panel__close", "✕");
-  close.setAttribute("aria-label", "Close");
-  header.appendChild(close);
-  panel.appendChild(header);
+  const icon = el("span", "promptos-toast__icon", "✦");
+  const label = el("span", "promptos-toast__label", "PromptOS");
+  const msg = el("span", "promptos-toast__msg", buildMessage(result));
 
-  // Stats
-  const { stats } = result;
-  const stat = el("div", "promptos-stats");
-  const savedClass =
-    stats.saved > 0 ? "promptos-pill--good" : stats.saved < 0 ? "promptos-pill--warn" : "";
-  stat.innerHTML = `
-    <span class="promptos-pill">${stats.originalTokens} → ${stats.optimizedTokens} tokens</span>
-    <span class="promptos-pill ${savedClass}">${stats.saved >= 0 ? "−" : "+"}${Math.abs(stats.saved)} tokens (${stats.savedPercent}%)</span>
-  `;
-  panel.appendChild(stat);
+  toast.append(icon, label, msg);
 
-  // Optimized text
-  const textarea = el("textarea", "promptos-textarea") as HTMLTextAreaElement;
-  textarea.value = result.optimized;
-  textarea.spellcheck = false;
-  panel.appendChild(textarea);
-
-  // Changes list
-  if (result.changes.length > 0) {
-    const changes = el("ul", "promptos-changes");
-    for (const c of result.changes) {
-      const li = el("li");
-      li.textContent = c.count > 1 ? `${c.description} (×${c.count})` : c.description;
-      changes.appendChild(li);
-    }
-    const details = el("details", "promptos-details");
-    const summary = el("summary", undefined, `${result.changes.length} change${result.changes.length === 1 ? "" : "s"}`);
-    details.appendChild(summary);
-    details.appendChild(changes);
-    panel.appendChild(details);
-  } else {
-    panel.appendChild(el("div", "promptos-empty", "Already concise — no changes needed."));
+  if (handlers.onUndo) {
+    const undo = el("button", "promptos-toast__undo", "Undo");
+    const undoHandler = handlers.onUndo;
+    undo.addEventListener("click", () => {
+      undoHandler();
+      toast.remove();
+      clearTimeout(timerId);
+    });
+    toast.appendChild(undo);
   }
 
-  // Actions
-  const actions = el("div", "promptos-actions");
-  const cancel = el("button", "promptos-action promptos-action--ghost", "Cancel");
-  const copy = el("button", "promptos-action promptos-action--ghost", "Copy");
-  const apply = el("button", "promptos-action promptos-action--primary", "Apply to chat");
-  actions.append(cancel, copy, apply);
-  panel.appendChild(actions);
+  document.body.appendChild(toast);
 
-  const destroy = () => overlay.remove();
+  // Auto-dismiss
+  const timerId = window.setTimeout(() => toast.remove(), AUTO_DISMISS_MS);
 
-  close.addEventListener("click", destroy);
-  cancel.addEventListener("click", destroy);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) destroy();
-  });
-  copy.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(textarea.value);
-      copy.textContent = "Copied!";
-      setTimeout(() => (copy.textContent = "Copy"), 1200);
-    } catch {
-      copy.textContent = "Copy failed";
+  // Escape key → undo + dismiss
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      handlers.onUndo?.();
+      toast.remove();
+      clearTimeout(timerId);
+      document.removeEventListener("keydown", onKey);
     }
-  });
-  apply.addEventListener("click", () => {
-    // Honour any manual edits the user made in the preview textarea.
-    result.optimized = textarea.value;
-    handlers.onApply();
-    destroy();
-  });
+  };
+  document.addEventListener("keydown", onKey);
 
-  document.addEventListener(
-    "keydown",
-    function onKey(e) {
-      if (e.key === "Escape") {
-        destroy();
-        document.removeEventListener("keydown", onKey);
-      }
-    },
-  );
-
-  document.body.appendChild(overlay);
-  textarea.focus();
-  textarea.setSelectionRange(0, 0);
+  // Clicking the toast itself doesn't undo (only the button does)
+  toast.addEventListener("mouseover", () => {
+    // Pause auto-dismiss while hovering would be nice but keep it simple
+  });
 }

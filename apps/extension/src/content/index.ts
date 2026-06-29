@@ -104,23 +104,22 @@ function applyResult(input: HTMLElement, result: OptimizeResult): void {
 async function runOptimize(): Promise<void> {
   const input = currentInput ?? findInput();
   if (!input) return;
-  const text = readInput(input).trim();
-  if (!text) return;
+  const original = readInput(input).trim();
+  if (!original) return;
 
   setButtonBusy(true);
   try {
-    const result = optimize(text, {
+    const result = optimize(original, {
       enhance: settings.enhance,
       platform: adapter.id,
     });
 
-    if (settings.autoApply) {
-      applyResult(input, result);
-    } else {
-      renderPreview(result, {
-        onApply: () => applyResult(input, result),
-      });
-    }
+    // Apply immediately — no blocking modal. Toast gives feedback + Undo.
+    applyResult(input, result);
+    renderPreview(result, {
+      onApply: () => {},
+      onUndo: () => writeInput(input, original),
+    });
   } finally {
     setButtonBusy(false);
   }
