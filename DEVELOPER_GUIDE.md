@@ -105,17 +105,20 @@ content script (content/index.ts) is already injected on the page
         ▼
 User clicks ✦  ──► runOptimize()
         │
-        ├─ readInput(el)         ← read text out of the composer (platforms.ts)
-        ├─ optimize(text, {...})  ← THE ENGINE (packages/core)
-        │
-        ├─ if autoApply  ──► writeInput(el, result.optimized)   (replace text)
-        └─ else          ──► renderPreview(result)              (show panel)
-                                   └─ user clicks Apply ──► writeInput(...)
+        ├─ readInput(el)           ← read original text (platforms.ts)
+        ├─ optimize(text, {...})    ← THE ENGINE (packages/core)
+        ├─ writeInput(el, result)  ← apply immediately — no modal
+        └─ showToast(result, { onUndo: () => writeInput(el, original) })
+                │
+                └─ small slide-up bar at bottom: "✦ PromptOS · Fixed grammar · −4 tokens  [Undo]"
+                   auto-dismisses in 5 s; Escape or Undo click restores original text
 ```
 
 Key files: [content/index.ts](apps/extension/src/content/index.ts),
 [content/preview.ts](apps/extension/src/content/preview.ts),
 [shared/platforms.ts](apps/extension/src/shared/platforms.ts).
+
+> **Why no preview modal?** The old approach required three clicks (Optimize → read result → Apply to chat) and blocked the whole page. The new approach applies instantly and lets the user undo if they don't like the result — the same pattern used by Gmail's "Send undo" and Notion's slash commands.
 
 ### Flow B: the toolbar popup
 
@@ -133,8 +136,8 @@ Key file: [popup/index.ts](apps/extension/src/popup/index.ts).
 
 ### Settings flow
 
-`enhance`, `showInlineButton`, `autoApply` are stored in `chrome.storage.sync`
-(syncs across the user's Chrome). See
+`enhance` and `showInlineButton` are stored in `chrome.storage.sync` (syncs
+across the user's Chrome). See
 [shared/settings.ts](apps/extension/src/shared/settings.ts). When the popup
 changes a setting, `onSettingsChanged` fires in any open content script so the
 button updates live — no page reload needed.
@@ -473,12 +476,12 @@ bundles four entry points into `dist/` and copies the static `public/` files.
 
 | Surface | Entry | What it owns |
 |---|---|---|
-| **Content script** | [content/index.ts](apps/extension/src/content/index.ts) | Injects the ✦ button into AI sites, runs optimize on click, shows preview or applies. |
-| **Preview panel** | [content/preview.ts](apps/extension/src/content/preview.ts) | Builds the in-page result panel (DOM by hand, no framework). |
+| **Content script** | [content/index.ts](apps/extension/src/content/index.ts) | Injects the ✦ button into AI sites, runs optimize on click, applies text immediately, shows toast. |
+| **Toast notification** | [content/preview.ts](apps/extension/src/content/preview.ts) | Small slide-up bar at the bottom of the page: shows top change + token saving + Undo button. Auto-dismisses after 5 s. |
 | **Popup** | [popup/index.ts](apps/extension/src/popup/index.ts) + `public/popup.html` | The toolbar mini-app: paste → Optimize → Copy/Apply, plus the Enhance toggle. |
 | **Options** | [options/index.ts](apps/extension/src/options/index.ts) + `public/options.html` | Full settings page. |
 | **Background** | [background/index.ts](apps/extension/src/background/index.ts) | MV3 service worker: seeds default settings, opens welcome page on install. |
-| **Shared settings** | [shared/settings.ts](apps/extension/src/shared/settings.ts) | `Settings` type, load/save via `chrome.storage.sync`, change subscription. |
+| **Shared settings** | [shared/settings.ts](apps/extension/src/shared/settings.ts) | `Settings` type (`enhance`, `showInlineButton`), load/save via `chrome.storage.sync`, change subscription. |
 | **Platforms** | [shared/platforms.ts](apps/extension/src/shared/platforms.ts) | Per-site adapters: how to find and read/write each composer. |
 
 ### How text gets written back into a chat box (the tricky bit)
