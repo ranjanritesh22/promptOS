@@ -67,6 +67,7 @@ h2 { font-size: 26px; margin: 0 0 6px; }
 .opt-mode--active { background: var(--accent); color: #0a0a0a; }
 .opt-intent { font-size: 13px; color: var(--muted); }
 .opt-intent strong { color: var(--accent); }
+.opt-hint { font-size: 13px; color: var(--muted); flex: 1; min-width: 200px; }
 
 .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 720px) { .opt-grid { grid-template-columns: 1fr; } }

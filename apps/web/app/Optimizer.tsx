@@ -1,6 +1,6 @@
 "use client";
 
-import { optimize, type Aggressiveness, type OptimizeResult } from "@promptos/core";
+import { optimize, type OptimizeResult } from "@promptos/core";
 import { useMemo, useState } from "react";
 
 const SAMPLE =
@@ -8,18 +8,11 @@ const SAMPLE =
 
 export function Optimizer() {
   const [input, setInput] = useState(SAMPLE);
-  const [mode, setMode] = useState<"compress" | "enhance">("compress");
-  const [aggressiveness, setAggressiveness] = useState<Aggressiveness>("balanced");
-  const [restructure, setRestructure] = useState(false);
+  const [enhance, setEnhance] = useState(false);
 
   const result: OptimizeResult = useMemo(
-    () =>
-      optimize(input, {
-        aggressiveness,
-        restructure: mode === "compress" ? restructure : false,
-        enhance: mode === "enhance",
-      }),
-    [input, aggressiveness, restructure, mode],
+    () => optimize(input, { enhance }),
+    [input, enhance],
   );
 
   const { stats, intent } = result;
@@ -27,54 +20,36 @@ export function Optimizer() {
   return (
     <div className="optimizer">
       <div className="opt-controls">
-        <div className="opt-modes" role="tablist" aria-label="Optimization mode">
+        <div className="opt-modes" role="tablist" aria-label="Mode">
           <button
             type="button"
             role="tab"
-            aria-selected={mode === "compress"}
-            className={`opt-mode ${mode === "compress" ? "opt-mode--active" : ""}`}
-            onClick={() => setMode("compress")}
+            aria-selected={!enhance}
+            className={`opt-mode ${!enhance ? "opt-mode--active" : ""}`}
+            onClick={() => setEnhance(false)}
           >
-            Compress
+            Optimize
           </button>
           <button
             type="button"
             role="tab"
-            aria-selected={mode === "enhance"}
-            className={`opt-mode ${mode === "enhance" ? "opt-mode--active" : ""}`}
-            onClick={() => setMode("enhance")}
+            aria-selected={enhance}
+            className={`opt-mode ${enhance ? "opt-mode--active" : ""}`}
+            onClick={() => setEnhance(true)}
           >
             Enhance
           </button>
         </div>
 
-        {mode === "compress" ? (
-          <>
-            <label>
-              Strength
-              <select
-                value={aggressiveness}
-                onChange={(e) => setAggressiveness(e.target.value as Aggressiveness)}
-              >
-                <option value="light">Light</option>
-                <option value="balanced">Balanced</option>
-                <option value="aggressive">Aggressive</option>
-              </select>
-            </label>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={restructure}
-                onChange={(e) => setRestructure(e.target.checked)}
-              />
-              Restructure into sections
-            </label>
-          </>
-        ) : (
-          <span className="opt-intent" title={`Confidence ${Math.round(intent.confidence * 100)}%`}>
-            Detected intent: <strong>{intent.label}</strong>
-          </span>
-        )}
+        <span className="opt-hint">
+          {enhance
+            ? "Rewrites into a structured prompt for the detected topic."
+            : "Fixes grammar, spelling & wordiness — same meaning, better English."}
+        </span>
+
+        <span className="opt-intent" title={`Confidence ${Math.round(intent.confidence * 100)}%`}>
+          Intent: <strong>{intent.label}</strong>
+        </span>
       </div>
 
       <div className="opt-grid">
@@ -93,7 +68,7 @@ export function Optimizer() {
 
         <div className="opt-col">
           <div className="opt-col__head">
-            <span>Optimized</span>
+            <span>{enhance ? "Enhanced" : "Optimized"}</span>
             <span className={`badge ${stats.saved > 0 ? "badge--good" : ""}`}>
               {stats.optimizedTokens} tokens · {stats.saved >= 0 ? "−" : "+"}
               {Math.abs(stats.saved)} ({stats.savedPercent}%)

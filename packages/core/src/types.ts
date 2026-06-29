@@ -51,19 +51,16 @@ export interface IntentMatch {
 
 /** User-tunable options for a single optimization pass. */
 export interface OptimizeOptions {
-  /** How hard to compress. Default: `"balanced"`. */
-  aggressiveness?: Aggressiveness;
   /**
-   * Re-organize the prompt into clearly labelled sections
-   * (Role / Context / Task / Constraints / Format). Default: `false`.
-   * This trades a few extra tokens for much clearer instructions.
+   * How hard to clean up. Default: `"balanced"`. Not surfaced in the UI — the
+   * apps always use the default; it exists so individual rules can be gated.
    */
-  restructure?: boolean;
+  aggressiveness?: Aggressiveness;
   /**
    * Rewrite the prompt into a canonical, intent-specific template
    * (detects coding / planning / writing / health / ... and structures the
-   * request accordingly). Default: `false`. When on, this supersedes
-   * `restructure`.
+   * request accordingly). Default: `false`. When off, PromptOS just cleans up
+   * grammar, spelling, and wordiness.
    */
   enhance?: boolean;
   /** The platform the prompt is destined for (reserved for future tuning). */

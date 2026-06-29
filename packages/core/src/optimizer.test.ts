@@ -3,7 +3,6 @@ import { test } from "node:test";
 
 import { optimize } from "./optimizer.js";
 import { estimateTokens } from "./tokenizer.js";
-import { restructurePrompt } from "./structure.js";
 
 test("estimateTokens: empty and basic", () => {
   assert.equal(estimateTokens(""), 0);
@@ -72,29 +71,7 @@ test("optimize: reports positive token savings on wordy input", () => {
 });
 
 test("optimize: never throws on empty input", () => {
-  const r = optimize("", { aggressiveness: "aggressive", restructure: true });
+  const r = optimize("", { aggressiveness: "aggressive", enhance: true });
   assert.equal(r.optimized, "");
   assert.equal(r.stats.saved, 0);
-});
-
-test("restructure: organizes into sections when signals present", () => {
-  const input =
-    "You are an expert Go developer. I am building a CLI tool. Add a flag to parse JSON. Do not use external libraries. Return the answer as a code block.";
-  const out = restructurePrompt(input);
-  assert.match(out, /## Role/);
-  assert.match(out, /## Constraints/);
-  assert.match(out, /## Output format/);
-});
-
-test("restructure: leaves short / signal-free input untouched", () => {
-  const input = "Write a poem about rain.";
-  assert.equal(restructurePrompt(input), input);
-});
-
-test("optimize: restructure option records a change", () => {
-  const input =
-    "You are a senior engineer. Refactor the function. Do not change its behavior. Respond with only code.";
-  const r = optimize(input, { aggressiveness: "balanced", restructure: true });
-  assert.ok(r.changes.some((c) => c.rule === "restructure"));
-  assert.match(r.optimized, /## /);
 });

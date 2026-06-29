@@ -7,7 +7,6 @@
 
 export { optimize } from "./optimizer.js";
 export { estimateTokens, buildTokenStats } from "./tokenizer.js";
-export { restructurePrompt } from "./structure.js";
 export { detectIntent, buildIntentPrompt, extractGoal } from "./intents.js";
 export { ALL_RULES } from "./rules.js";
 export {

@@ -7,12 +7,13 @@
 > (the English/grammar fixer, the intent engine, app flow, and how to add or fix
 > things), read **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)**.
 >
-> 🔄 **What changed recently:** the popup is now simplified — the **Strength**
-> dropdown and standalone **Restructure** toggle were removed for a lightweight
-> UX. The default **Optimize** now always runs a grammar/English cleanup (spelling,
-> a/an, contractions, capitalization), and a single **Enhance** toggle rewrites
-> the prompt into an intent-aware template (coding, writing, planning, health…).
-> Some sections below still describe the older strength-based UI.
+> 🔄 **What changed recently:** PromptOS now has **just two modes** — **Optimize**
+> (the default: grammar/English cleanup — spelling, a/an, contractions,
+> capitalization, wordiness) and **Enhance** (rewrite into an intent-aware
+> template: coding, writing, planning, health…). The old **Strength** dropdown and
+> the **Restructure into sections** feature have been **removed** — Enhance replaces
+> restructuring. Sections below that mention *Strength levels* or *Restructure* are
+> historical and no longer reflect the UI.
 
 ---
 
@@ -254,8 +255,7 @@ Open via: **right-click the extension icon → Options**, or click the **Setting
 
 | Setting | What it does |
 |---|---|
-| **Strength** | Light / Balanced / Aggressive — controls how much is rewritten |
-| **Restructure into sections** | Reorganizes the prompt into Role/Context/Task/Constraints/Format |
+| **Enhance** | Off = clean up grammar & wording. On = rewrite into a structured, intent-aware prompt. |
 | **Show Optimize button** | Toggle the inline ✦ button on/off inside chat boxes |
 | **Apply instantly** | Skip the preview and apply the optimized prompt directly |
 
@@ -316,35 +316,34 @@ Everything in Balanced, plus:
 
 ---
 
-## The Restructure Feature
+## The Enhance Mode
 
-When **Restructure into sections** is enabled, PromptOS analyzes your prompt and reorganizes it into clearly labelled markdown sections:
+> *(This replaces the old "Restructure" feature, which has been removed.)*
 
-```markdown
-## Role
-You are an expert Go developer.
+Turn on the **Enhance** toggle to rewrite your prompt into a complete, structured
+prompt tailored to what you're asking for. PromptOS detects the topic — coding,
+debugging, planning, writing, learning, health, business, or data — and applies a
+template that follows the anatomy of a good prompt: a role, the task, and explicit
+deliverables.
 
-## Context
-- I am building a CLI tool.
+For example, `make me a todo app in react` becomes:
 
-## Task
-- Add a flag to parse JSON input.
+```
+Act as a senior software engineer.
 
-## Constraints
-- Do not use external libraries.
+Task: Todo app in react.
 
-## Output format
-- Respond with a code block only.
+Deliver:
+- Complete, runnable, idiomatic code.
+- A one-line note on the language/framework and any assumptions.
+- Brief instructions to run or test it.
+
+Keep it production-quality. Ask before guessing missing requirements.
 ```
 
-**How it detects sections:**
-- **Role** — sentences starting with "You are", "Act as", "Behave as", etc.
-- **Context** — sentences starting with "I am building", "Here is", "Given", "For reference", etc.
-- **Constraints** — sentences starting with "Do not", "Never", "Must", "Ensure", "Avoid", etc.
-- **Output format** — sentences mentioning "as JSON", "in markdown", "code block", "return a list", "respond with", etc.
-- **Task** — everything else (the main instruction)
-
-If PromptOS can't find enough signals to restructure meaningfully, it leaves the prompt as-is.
+Enhance intentionally **adds** tokens — it trades length for a much clearer
+instruction. When Enhance is off, PromptOS just cleans up your English (the
+default Optimize mode).
 
 ---
 
@@ -398,14 +397,14 @@ This is the heart of PromptOS. It is a pure TypeScript library with zero runtime
 
 | File | What it does |
 |---|---|
-| `src/types.ts` | All TypeScript type definitions: `OptimizeOptions`, `OptimizeResult`, `TokenStats`, `AppliedChange`, `Rule`, `Aggressiveness`, `Platform`. The single source of truth for the data shapes used everywhere. |
-| `src/dictionaries.ts` | The word lists that power the rules: 46 wordy-phrase replacements, 18 filler openers, 19 hedges/intensifiers, 6 politeness particles. Adding a new word to these lists is all it takes to teach PromptOS a new pattern. |
-| `src/rules.ts` | Six individual, composable rule functions (each a pure `text → text + changes` transform): `collapseWhitespace`, `replaceWordyPhrases`, `stripFillerOpeners`, `stripPoliteness`, `stripHedges`, `dedupeLines`, `tidyPunctuation`. Each rule is gated by a minimum aggressiveness level. |
-| `src/structure.ts` | The restructuring engine. Uses regex signal detection to classify each sentence into Role / Context / Task / Constraints / Format buckets, then renders them as labelled markdown sections. If signals are too weak, returns the input unchanged. |
+| `src/types.ts` | All TypeScript type definitions: `OptimizeOptions`, `OptimizeResult`, `IntentMatch`, `TokenStats`, `AppliedChange`, `Rule`, `Aggressiveness`, `Platform`. The single source of truth for the data shapes used everywhere. |
+| `src/dictionaries.ts` | The word lists that power the rules: ~107 wordy-phrase replacements, ~121 contractions/typos, 33 filler openers, 19 hedges/intensifiers, 6 politeness particles. Adding a word here teaches PromptOS a new pattern — no code change. |
+| `src/rules.ts` | Eight composable rule functions (each a pure `text → text + changes` transform): `collapseWhitespace`, `replaceWordyPhrases`, `stripFillerOpeners`, `stripPoliteness`, `stripHedges`, `dedupeLines`, `tidyPunctuation`, and `tidyGrammar` (the always-on English/spelling/a-an fixer). |
+| `src/intents.ts` | The **Enhance** engine: `detectIntent` scores a prompt into a category (coding/writing/planning/health…), `extractGoal` strips request framing, and per-category templates build a structured prompt. |
 | `src/tokenizer.ts` | Fast token estimator. Combines character-per-token and word-per-token heuristics and takes the max, matching real tokenizers closely for English prose without shipping a multi-MB vocabulary file. |
-| `src/optimizer.ts` | The orchestrator. Runs all rules in order, gated by the chosen aggressiveness level, optionally calls the restructurer, collects all change records, and returns the final `OptimizeResult`. This is the only function you need to call: `optimize(text, options)`. |
+| `src/optimizer.ts` | The orchestrator. Runs all rules in order, optionally runs the Enhance template, collects change records, and returns the final `OptimizeResult` (which always includes the detected `intent`). The only function you call: `optimize(text, options)`. |
 | `src/index.ts` | Public API surface — re-exports everything the extension and web app need. |
-| `src/optimizer.test.ts` | 12 unit tests using Node's built-in `node:test` runner. Covers whitespace, phrase replacement, filler removal, politeness, hedges, deduplication, aggressiveness gating, token savings, restructuring, and edge cases. |
+| `src/optimizer.test.ts` / `src/intents.test.ts` | Unit tests using Node's built-in `node:test` runner. Covers whitespace, phrase replacement, filler/politeness removal, grammar/spelling/a-an fixes, intent detection, goal extraction, templates, and edge cases. |
 | `package.json` | Package metadata; declares `tsx` for running TypeScript tests directly. |
 | `tsconfig.json` | TypeScript config extending the root base, targeting the `src/` directory. |
 
@@ -535,10 +534,11 @@ promptOS/
 │           ├── types.ts
 │           ├── dictionaries.ts
 │           ├── rules.ts
-│           ├── structure.ts
+│           ├── intents.ts
 │           ├── tokenizer.ts
 │           ├── optimizer.ts
 │           ├── optimizer.test.ts
+│           ├── intents.test.ts
 │           └── index.ts
 │
 └── apps/

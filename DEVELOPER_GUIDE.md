@@ -85,7 +85,6 @@ do UI.**
 | [dictionaries.ts](packages/core/src/dictionaries.ts) | Data | The word lists (typos, wordy phrases, fillers…). |
 | [rules.ts](packages/core/src/rules.ts) | English engine | 8 small text-transform functions. |
 | [tokenizer.ts](packages/core/src/tokenizer.ts) | Counting | Estimates how many tokens a string costs. |
-| [structure.ts](packages/core/src/structure.ts) | Legacy restructure | Splits a prompt into Role/Context/Task sections. |
 | [intents.ts](packages/core/src/intents.ts) | Enhance engine | Detects intent + builds template prompts. |
 | [optimizer.ts](packages/core/src/optimizer.ts) | Orchestrator | Runs the pipeline and returns the result. |
 | [index.ts](packages/core/src/index.ts) | Public API | Re-exports everything the apps may import. |
@@ -448,9 +447,8 @@ type IntentCategory =
   "learning" | "health" | "business" | "data" | "general";
 
 interface OptimizeOptions {
-  aggressiveness?: Aggressiveness;  // default "balanced"
-  restructure?: boolean;            // legacy section splitter
-  enhance?: boolean;                // intent-template mode (supersedes restructure)
+  aggressiveness?: Aggressiveness;  // default "balanced"; internal, not in the UI
+  enhance?: boolean;                // false = English cleanup, true = structured rewrite
   platform?: Platform;              // reserved for future per-site tuning
 }
 
