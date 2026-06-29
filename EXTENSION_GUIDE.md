@@ -3,6 +3,17 @@
 > **Make your AI prompts shorter, smarter, and more effective — instantly.**
 > No account. No API key. Everything runs offline inside your browser.
 
+> ⚙️ **Developers:** for a deep, code-level walkthrough of how the engine works
+> (the English/grammar fixer, the intent engine, app flow, and how to add or fix
+> things), read **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)**.
+>
+> 🔄 **What changed recently:** the popup is now simplified — the **Strength**
+> dropdown and standalone **Restructure** toggle were removed for a lightweight
+> UX. The default **Optimize** now always runs a grammar/English cleanup (spelling,
+> a/an, contractions, capitalization), and a single **Enhance** toggle rewrites
+> the prompt into an intent-aware template (coding, writing, planning, health…).
+> Some sections below still describe the older strength-based UI.
+
 ---
 
 ## Table of Contents
