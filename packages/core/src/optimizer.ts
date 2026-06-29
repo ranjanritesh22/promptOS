@@ -3,6 +3,7 @@
  * optionally restructures, and reports token savings + applied changes.
  */
 
+import { buildIntentPrompt, detectIntent } from "./intents.js";
 import { ALL_RULES } from "./rules.js";
 import { restructurePrompt } from "./structure.js";
 import { buildTokenStats } from "./tokenizer.js";
@@ -31,8 +32,11 @@ function ruleEnabled(ruleMin: Aggressiveness, chosen: Aggressiveness): boolean {
  * Pure and synchronous — safe to call on every keystroke if desired.
  */
 export function optimize(input: string, options: OptimizeOptions = {}): OptimizeResult {
-  const { aggressiveness = "balanced", restructure = false } = options;
+  const { aggressiveness = "balanced", restructure = false, enhance = false } = options;
   const original = input;
+
+  // Intent is always reported so every surface can show "what this looks like".
+  const intent = detectIntent(original);
 
   let text = input;
   const changes: AppliedChange[] = [];
@@ -44,7 +48,19 @@ export function optimize(input: string, options: OptimizeOptions = {}): Optimize
     changes.push(...result.changes);
   }
 
-  if (restructure) {
+  if (enhance) {
+    // Enhance rewrites the (already-compressed) prompt into a canonical,
+    // intent-specific template. It supersedes the generic restructure.
+    const before = text;
+    text = buildIntentPrompt(before, intent);
+    if (text.trim() !== before.trim()) {
+      changes.push({
+        rule: "enhance",
+        description: `Rewrote as a ${intent.label} prompt with clear structure`,
+        count: 1,
+      });
+    }
+  } else if (restructure) {
     const before = text;
     text = restructurePrompt(text);
     if (text !== before) {
@@ -63,5 +79,6 @@ export function optimize(input: string, options: OptimizeOptions = {}): Optimize
     optimized: text,
     stats: buildTokenStats(original, text),
     changes,
+    intent,
   };
 }

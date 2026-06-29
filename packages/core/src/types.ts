@@ -25,6 +25,30 @@ export type Platform =
  */
 export type Aggressiveness = "light" | "balanced" | "aggressive";
 
+/**
+ * The kind of thing a prompt is asking for. Used by the intent engine to pick
+ * the right rewrite template (coding, planning, health, ...).
+ */
+export type IntentCategory =
+  | "coding"
+  | "debugging"
+  | "planning"
+  | "writing"
+  | "learning"
+  | "health"
+  | "business"
+  | "data"
+  | "general";
+
+/** The detected intent of a prompt. */
+export interface IntentMatch {
+  category: IntentCategory;
+  /** Human-readable label, e.g. `"Health & fitness"`. */
+  label: string;
+  /** How sure we are, 0–1 (0 means we fell back to `"general"`). */
+  confidence: number;
+}
+
 /** User-tunable options for a single optimization pass. */
 export interface OptimizeOptions {
   /** How hard to compress. Default: `"balanced"`. */
@@ -35,6 +59,13 @@ export interface OptimizeOptions {
    * This trades a few extra tokens for much clearer instructions.
    */
   restructure?: boolean;
+  /**
+   * Rewrite the prompt into a canonical, intent-specific template
+   * (detects coding / planning / writing / health / ... and structures the
+   * request accordingly). Default: `false`. When on, this supersedes
+   * `restructure`.
+   */
+  enhance?: boolean;
   /** The platform the prompt is destined for (reserved for future tuning). */
   platform?: Platform;
 }
@@ -65,6 +96,8 @@ export interface OptimizeResult {
   optimized: string;
   stats: TokenStats;
   changes: AppliedChange[];
+  /** The detected intent of the prompt (always reported, even when `enhance` is off). */
+  intent: IntentMatch;
 }
 
 /** Signature every optimization rule implements. */

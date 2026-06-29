@@ -27,6 +27,7 @@
 
       <section id="result" class="card result hidden">
         <div class="stats">
+          <span class="pill" id="intent"></span>
           <span class="pill" id="stat-tokens"></span>
           <span class="pill" id="stat-saved"></span>
         </div>
@@ -50,6 +51,10 @@
             <option value="aggressive">Aggressive — max savings</option>
           </select>
         </div>
+        <label class="toggle">
+          <input type="checkbox" id="enhance" />
+          <span>Enhance — rewrite into a clear, intent-aware prompt</span>
+        </label>
         <label class="toggle">
           <input type="checkbox" id="restructure" />
           <span>Restructure into sections</span>

@@ -59,6 +59,15 @@ h2 { font-size: 26px; margin: 0 0 6px; }
 }
 .opt-controls input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
 
+.opt-modes { display: inline-flex; padding: 3px; gap: 3px; background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; }
+.opt-mode {
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600;
+  padding: 7px 16px; border-radius: 7px; cursor: pointer;
+}
+.opt-mode--active { background: var(--accent); color: #0a0a0a; }
+.opt-intent { font-size: 13px; color: var(--muted); }
+.opt-intent strong { color: var(--accent); }
+
 .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 720px) { .opt-grid { grid-template-columns: 1fr; } }
 .opt-col__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }

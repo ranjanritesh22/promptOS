@@ -11,6 +11,11 @@ export interface Settings {
   aggressiveness: Aggressiveness;
   /** Reorganize into Role/Context/Task/Constraints/Format sections. */
   restructure: boolean;
+  /**
+   * Rewrite the prompt into a canonical, intent-specific template
+   * (coding / planning / writing / health / ...). Supersedes `restructure`.
+   */
+  enhance: boolean;
   /** Show the floating Optimize button inside supported chat boxes. */
   showInlineButton: boolean;
   /** Replace text immediately, or show a preview diff first. */
@@ -20,6 +25,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   aggressiveness: "balanced",
   restructure: false,
+  enhance: false,
   showInlineButton: true,
   autoApply: false,
 };

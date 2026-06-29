@@ -28,8 +28,10 @@ const els = {
   changesWrap: $<HTMLDetailsElement>("changes-wrap"),
   changesSummary: $<HTMLElement>("changes-summary"),
   changesList: $<HTMLUListElement>("changes-list"),
+  intent: $<HTMLElement>("intent"),
   aggressiveness: $<HTMLSelectElement>("aggressiveness"),
   restructure: $<HTMLInputElement>("restructure"),
+  enhance: $<HTMLInputElement>("enhance"),
   showInlineButton: $<HTMLInputElement>("showInlineButton"),
   autoApply: $<HTMLInputElement>("autoApply"),
   openOptions: $<HTMLAnchorElement>("open-options"),
@@ -43,6 +45,9 @@ function renderResult(result: OptimizeResult): void {
   lastResult = result;
   els.result.classList.remove("hidden");
   els.output.value = result.optimized;
+
+  els.intent.textContent =
+    result.intent.confidence > 0 ? `Intent: ${result.intent.label}` : "Intent: general";
 
   const { stats } = result;
   els.statTokens.textContent = `${stats.originalTokens} → ${stats.optimizedTokens} tokens`;
@@ -74,6 +79,7 @@ function runOptimize(): void {
     optimize(text, {
       aggressiveness: settings.aggressiveness,
       restructure: settings.restructure,
+      enhance: settings.enhance,
     }),
   );
 }
@@ -122,6 +128,7 @@ async function persist(): Promise<void> {
   settings = {
     aggressiveness: els.aggressiveness.value as Settings["aggressiveness"],
     restructure: els.restructure.checked,
+    enhance: els.enhance.checked,
     showInlineButton: els.showInlineButton.checked,
     autoApply: els.autoApply.checked,
   };
@@ -131,10 +138,11 @@ async function persist(): Promise<void> {
 function bindSettings(): void {
   els.aggressiveness.value = settings.aggressiveness;
   els.restructure.checked = settings.restructure;
+  els.enhance.checked = settings.enhance;
   els.showInlineButton.checked = settings.showInlineButton;
   els.autoApply.checked = settings.autoApply;
 
-  for (const el of [els.aggressiveness, els.restructure, els.showInlineButton, els.autoApply]) {
+  for (const el of [els.aggressiveness, els.restructure, els.enhance, els.showInlineButton, els.autoApply]) {
     el.addEventListener("change", persist);
   }
 }

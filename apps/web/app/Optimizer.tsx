@@ -8,38 +8,73 @@ const SAMPLE =
 
 export function Optimizer() {
   const [input, setInput] = useState(SAMPLE);
+  const [mode, setMode] = useState<"compress" | "enhance">("compress");
   const [aggressiveness, setAggressiveness] = useState<Aggressiveness>("balanced");
   const [restructure, setRestructure] = useState(false);
 
   const result: OptimizeResult = useMemo(
-    () => optimize(input, { aggressiveness, restructure }),
-    [input, aggressiveness, restructure],
+    () =>
+      optimize(input, {
+        aggressiveness,
+        restructure: mode === "compress" ? restructure : false,
+        enhance: mode === "enhance",
+      }),
+    [input, aggressiveness, restructure, mode],
   );
 
-  const { stats } = result;
+  const { stats, intent } = result;
 
   return (
     <div className="optimizer">
       <div className="opt-controls">
-        <label>
-          Strength
-          <select
-            value={aggressiveness}
-            onChange={(e) => setAggressiveness(e.target.value as Aggressiveness)}
+        <div className="opt-modes" role="tablist" aria-label="Optimization mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "compress"}
+            className={`opt-mode ${mode === "compress" ? "opt-mode--active" : ""}`}
+            onClick={() => setMode("compress")}
           >
-            <option value="light">Light</option>
-            <option value="balanced">Balanced</option>
-            <option value="aggressive">Aggressive</option>
-          </select>
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={restructure}
-            onChange={(e) => setRestructure(e.target.checked)}
-          />
-          Restructure into sections
-        </label>
+            Compress
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "enhance"}
+            className={`opt-mode ${mode === "enhance" ? "opt-mode--active" : ""}`}
+            onClick={() => setMode("enhance")}
+          >
+            Enhance
+          </button>
+        </div>
+
+        {mode === "compress" ? (
+          <>
+            <label>
+              Strength
+              <select
+                value={aggressiveness}
+                onChange={(e) => setAggressiveness(e.target.value as Aggressiveness)}
+              >
+                <option value="light">Light</option>
+                <option value="balanced">Balanced</option>
+                <option value="aggressive">Aggressive</option>
+              </select>
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={restructure}
+                onChange={(e) => setRestructure(e.target.checked)}
+              />
+              Restructure into sections
+            </label>
+          </>
+        ) : (
+          <span className="opt-intent" title={`Confidence ${Math.round(intent.confidence * 100)}%`}>
+            Detected intent: <strong>{intent.label}</strong>
+          </span>
+        )}
       </div>
 
       <div className="opt-grid">

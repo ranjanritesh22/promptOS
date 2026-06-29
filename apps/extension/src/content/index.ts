@@ -112,6 +112,7 @@ async function runOptimize(): Promise<void> {
     const result = optimize(text, {
       aggressiveness: settings.aggressiveness,
       restructure: settings.restructure,
+      enhance: settings.enhance,
       platform: adapter.id,
     });
 

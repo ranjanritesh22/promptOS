@@ -8,6 +8,7 @@
 export { optimize } from "./optimizer.js";
 export { estimateTokens, buildTokenStats } from "./tokenizer.js";
 export { restructurePrompt } from "./structure.js";
+export { detectIntent, buildIntentPrompt, extractGoal } from "./intents.js";
 export { ALL_RULES } from "./rules.js";
 export {
   WORDY_PHRASES,
@@ -19,6 +20,8 @@ export {
 export type {
   Platform,
   Aggressiveness,
+  IntentCategory,
+  IntentMatch,
   OptimizeOptions,
   OptimizeResult,
   TokenStats,
