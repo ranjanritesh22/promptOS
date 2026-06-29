@@ -1,22 +1,111 @@
-# PromptOS — Manual Test Prompts
+# PromptOS — Manual Test Prompts (QA Checklist)
 
-A checklist of prompts for manually testing the optimizer. Paste each into the
-web app, the extension popup, or an in-chat composer, and confirm:
+A ready-to-use script for manually testing PromptOS. Hand this to a QA / manual
+tester. No coding needed — just paste each prompt, compare the result to the
+**Expected output**, and tick the box.
 
-- **Enhance mode** → the **Detected intent** matches the "Expected intent" column,
-  and the rewritten prompt reads as a clean, structured directive.
-- **Compress mode** → wordy/filler input shrinks (negative token delta); already-tight
-  input is left alone ("Already concise").
+## Where to test
 
-Intent is also reported in **Compress** mode (badge / pill), so you can verify
-detection independently of the rewrite.
+- **Extension popup** — click the PromptOS ✦ toolbar icon, paste into the box,
+  click **✦ Optimize**.
+- **Inline button** — on ChatGPT / Claude / Gemini / Perplexity / Cursor, type in
+  the chat box and click the floating **✦ Optimize**.
+- **Web app** — `npm run dev:web` → http://localhost:3000.
 
-> Tip: in the web app, toggle **Compress ⇆ Enhance** without retyping — the result
-> updates live.
+## The two modes
+
+| Mode | How to turn it on | What it should do |
+|---|---|---|
+| **Optimize** (default) | **Enhance** toggle **OFF** | Fix English: spelling, `a/an`, apostrophes, capitalization, punctuation, wordiness. **Meaning stays the same.** |
+| **Enhance** | **Enhance** toggle **ON** | Rewrite into a full structured prompt based on the detected topic (coding, writing, planning, health…). |
+
+> ⚠️ **Important for testers:** In **Optimize** mode the token count may go **up,
+> down, or stay the same**. Adding a missing apostrophe or period adds characters,
+> so `−0%` or even a small negative % is **correct**, not a bug. The thing to
+> verify is that the **text is fixed correctly**, not that tokens dropped.
+>
+> In **Enhance** mode tokens almost always **go up** — that's expected; it trades
+> length for a clearer prompt.
 
 ---
 
-## 1. Coding
+# PART A — Optimize mode (English cleanup)
+
+**Enhance toggle OFF.** Paste the input; the output box should match exactly.
+
+## A1. Spelling fixes
+
+| # | Input | Expected output |
+|---|---|---|
+| 1 | `i recieve alot of emails and it is definately a problem` | `I receive a lot of emails and it is definitely a problem.` |
+| 2 | `this is seperate and occured becuase of teh bug` | `This is separate and occurred because of the bug.` |
+
+## A2. Contractions & informal text
+
+| # | Input | Expected output |
+|---|---|---|
+| 3 | `i dont think it wont work, im sure u can do it` | `I don't think it won't work, I'm sure you can do it.` |
+| 4 | `pls help me, i wanna learn thru practice` | `Please help me, I want to learn through practice.` |
+
+## A3. a / an article correction
+
+| # | Input | Expected output |
+|---|---|---|
+| 5 | `i need a apple, an book, a hour, and an university degree` | `I need an apple, a book, an hour, and a university degree.` |
+
+> This one is the showcase: `a apple → an apple`, `an book → a book`, **and** the
+> tricky exceptions `a hour → an hour` and `an university → a university`.
+
+## A4. Capitalization, lone "i", and end punctuation
+
+| # | Input | Expected output |
+|---|---|---|
+| 6 | `explain how i can center a div. it should work on mobile` | `Explain how I can center a div. It should work on mobile.` |
+
+Check: first letter capitalized, the standalone `i` → `I`, the sentence after the
+period capitalized, and a final period added.
+
+## A5. Wordiness → concise
+
+| # | Input | Expected output |
+|---|---|---|
+| 7 | `due to the fact that i have a large number of tasks, in order to finish i need help` | `Because I have many tasks, to finish I need help.` |
+| 8 | `at this point in time we have a great deal of work` | `Now we have much work.` |
+
+## A6. Redundancy (pleonasms)
+
+| # | Input | Expected output |
+|---|---|---|
+| 9 | `give me the end result and final outcome with past history` | `Give me the result and outcome with history.` |
+
+## A7. Filler + politeness removal
+
+| # | Input | Expected output |
+|---|---|---|
+| 10 | `I was wondering if you could please help me refactor this function. Thanks in advance!` | `Help me refactor this function.` |
+
+## A8. Already-clean prompt (no-op check)
+
+| # | Input | Expected output |
+|---|---|---|
+| 11 | `Summarize this article in three sentences.` | `Summarize this article in three sentences.` |
+
+> A clean prompt should come back unchanged (the changes list shows nothing /
+> "Already concise"). If a clean prompt gets mangled, that's a bug.
+
+---
+
+# PART B — Enhance mode (structured prompts)
+
+**Enhance toggle ON.** Here you check **two things**:
+
+1. The **Detected intent** badge matches the *Expected intent* column.
+2. The output is a clean, structured prompt (role → task → deliverables) that
+   reads well.
+
+> Intent is also shown in Optimize mode, so detection can be checked in either mode.
+
+## B1. Coding
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -29,7 +118,7 @@ detection independently of the rewrite.
 | `refactor this class to use dependency injection` | Coding |
 | `make me a landing page with html and css` | Coding |
 
-## 2. Debugging
+## B2. Debugging
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -40,10 +129,10 @@ detection independently of the rewrite.
 | `my tests are failing after the upgrade` | Debugging |
 | `this regex doesn't work for emails with a plus sign` | Debugging |
 
-> Note: debugging signals (error / bug / not working / fix) should win over the
-> coding signals in the same sentence.
+> Debugging signals (error / bug / not working / fix) should beat coding signals
+> in the same sentence.
 
-## 3. Planning
+## B3. Planning
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -54,7 +143,7 @@ detection independently of the rewrite.
 | `design a system architecture for a chat app` | Planning |
 | `break down the work for building an e-commerce site` | Planning |
 
-## 4. Writing
+## B4. Writing
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -67,10 +156,10 @@ detection independently of the rewrite.
 | `write a pitch for investors` | Writing |
 | `write a report on website traffic metrics` | Writing |
 
-> Note: "write a X" stays **Writing** unless concrete coding nouns are present —
-> e.g. `write a python function` flips to **Coding** because of `python` + `function`.
+> "write a X" stays **Writing** unless concrete coding nouns appear — e.g.
+> `write a python function` flips to **Coding** because of `python` + `function`.
 
-## 5. Learning
+## B5. Learning
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -81,10 +170,10 @@ detection independently of the rewrite.
 | `eli5 how does HTTPS keep data secure` | Learning |
 | `give me an example of recursion` | Learning |
 
-> Note: a leading "explain / what is / how does" should pick **Learning** even
-> when the topic is technical (e.g. JavaScript).
+> A leading `explain` / `what is` / `how does` picks **Learning** even when the
+> topic is technical.
 
-## 6. Health & fitness
+## B6. Health & fitness
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -95,13 +184,11 @@ detection independently of the rewrite.
 | `give me a beginner running workout for a 5k` | Health & fitness |
 | `tips to reduce stress and anxiety` | Health & fitness |
 
-> The health template must include the medical-disclaimer line.
->
-> Note: phrasing it as `plan a meal plan` / `plan a workout` can tip the intent to
-> **Planning** (both are valid plan-shaped requests). Either way you get a useful,
-> structured prompt.
+> The Health output must include the medical-disclaimer line. Phrasing it as
+> `plan a meal plan` / `plan a workout` can tip the intent to **Planning** — both
+> are valid.
 
-## 7. Business
+## B7. Business
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -111,11 +198,10 @@ detection independently of the rewrite.
 | `how to find my first customers` | Business |
 | `how do i price my saas product` | Learning* |
 
-> \* This reads as **Learning**, not Business — a leading `how do i` / `how to`
-> is treated as a "teach me" signal. That's a known, acceptable ambiguity:
-> the prompt still gets a clear, structured rewrite either way.
+> \* `how do i …` reads as **Learning** (a "teach me" signal), not Business. Known,
+> acceptable ambiguity — the rewrite is still useful.
 
-## 8. Data & analysis
+## B8. Data & analysis
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -124,9 +210,9 @@ detection independently of the rewrite.
 | `what insights can i get from this spreadsheet` | Data & analysis |
 | `show me trends and insights from my analytics data` | Data & analysis |
 
-## 9. General (fallback)
+## B9. General (fallback)
 
-These have no strong signal and should fall back to **General** with 0% confidence.
+No strong signal → **General**, 0% confidence.
 
 | Prompt | Expected intent |
 | --- | --- |
@@ -137,10 +223,10 @@ These have no strong signal and should fall back to **General** with 0% confiden
 
 ---
 
-## 10. Phrasing variations (goal-extraction test)
+# PART C — Phrasing variations (goal extraction)
 
-All of these should detect **Coding** and extract roughly the same goal
-("build a todo app in react") — proving many phrasings collapse to one prompt.
+In **Enhance** mode, all of these should detect **Coding** and produce a similar
+"todo app in react" task — proving many phrasings collapse to one clean prompt.
 
 - `build a todo app in react`
 - `i want to build a todo app in react`
@@ -152,35 +238,47 @@ All of these should detect **Coding** and extract roughly the same goal
 - `make me a todo app in react`
 - `i need a todo app in react, thanks in advance!`
 
-## 11. Compress-mode prompts (token reduction)
+---
 
-Use **Compress** mode here and confirm a negative token delta.
+# PART D — Edge cases (must not crash)
 
-- `I was wondering if you could please help me out. Basically, in order to improve my onboarding email, I would like you to rewrite it to be more concise and friendly. Due to the fact that our users are busy, it should be short. Please make sure to keep a call to action. Thanks in advance!`
-- `At this point in time, I would really appreciate it if you could take into consideration the fact that I need a large number of examples.`
-- `Please kindly make a decision about the design, and please note that we have a great deal of time.`
-- Try each at **Light / Balanced / Aggressive** strength and watch the savings grow.
-
-## 12. Edge cases
-
-| Prompt | What to check |
-| --- | --- |
-| *(empty input)* | No crash; nothing happens / button does nothing |
+| Input | What to check |
+|---|---|
+| *(empty box)* | Clicking Optimize does nothing; no error |
 | ` ` (only spaces) | Treated as empty |
-| `fix` | Too vague to classify alone → **General** (needs "fix this/my …" for Debugging) |
-| `a` | Single char — no crash, General |
-| 2000-word pasted prompt | No lag; still optimizes |
-| `WHY IS MY CODE NOT WORKING` (all caps) | Case-insensitive — Debugging |
-| `Build a REST API. Plan the database schema. Explain JWT auth.` | Mixed signals — picks the highest-scoring single intent (no crash) |
+| `fix` | Too vague alone → **General**; no crash |
+| `a` | Single char; no crash |
+| `WHY IS MY CODE NOT WORKING` (all caps) | Case-insensitive → **Debugging** |
+| `Build a REST API. Plan the database schema. Explain JWT auth.` | Mixed signals → picks one intent, no crash |
+| A 1000+ word pasted prompt | No freeze; returns a result |
 
 ---
 
-## Extension-specific checks
+# PART E — Extension behaviour checklist
 
-- **From page** button pulls text from the active ChatGPT/Claude/Gemini composer.
-- **Apply to chat** writes the optimized prompt back into the composer.
-- Inline **✦ Optimize** button appears in the chat box (when enabled) and only
-  shows when the box has text.
-- Toggling **Enhance** in the popup/options persists and changes the next result.
-- With **Apply instantly** off, a preview panel appears; with it on, text is
-  replaced directly.
+Tick each after a manual run:
+
+- [ ] The ✦ **Optimize** button appears in the chat box once you type, and hides
+      when the box is empty.
+- [ ] Clicking ✦ with **Apply instantly OFF** shows a **preview panel** with
+      before/after tokens and a changes list.
+- [ ] **Apply to chat** in the preview replaces the composer text correctly on
+      **ChatGPT**, **Claude**, **Gemini**, **Perplexity**, and **Cursor**.
+- [ ] **Apply instantly ON** replaces the text directly with no preview.
+- [ ] Popup **⤓ From page** pulls the current chat text into the popup.
+- [ ] Popup **Copy** copies the optimized text to the clipboard.
+- [ ] Toggling **Enhance** changes the next result (cleanup vs structured prompt).
+- [ ] Toggling **Show Optimize button** hides/shows the inline ✦ button live
+      (no page reload).
+- [ ] Settings persist after closing and reopening the popup.
+- [ ] `Escape` closes the preview panel; `Cmd/Ctrl+Enter` optimizes in the popup.
+
+---
+
+## Reporting a bug
+
+When something is wrong, capture: **(1)** the exact input, **(2)** the actual
+output, **(3)** the expected output, **(4)** the mode (Optimize/Enhance), and
+**(5)** the site/surface (popup / ChatGPT / Claude / web). Because PromptOS is
+fully deterministic, the same input always reproduces the same output — so a
+copy-paste of the input is enough for a developer to reproduce it.
