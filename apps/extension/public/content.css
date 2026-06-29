@@ -4,29 +4,37 @@
 /* ── Inline "Optimize" button ──────────────────────────────────────────── */
 
 .promptos-btn {
-  position: absolute;
+  /* Fixed to the viewport — never overlaps or shifts with the page content. */
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
   z-index: 2147483000;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 8px 14px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   color: #fff;
   background: linear-gradient(135deg, #7c8cff, #5a6bff);
   border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(90, 107, 255, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(90, 107, 255, 0.45), 0 1px 4px rgba(0,0,0,0.3);
   cursor: pointer;
-  opacity: 0.92;
-  transition: opacity 0.15s ease, transform 0.05s ease;
+  opacity: 0.95;
+  transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  user-select: none;
 }
-.promptos-btn:hover { opacity: 1; }
-.promptos-btn:active { transform: translateY(1px); }
+.promptos-btn:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(90, 107, 255, 0.55), 0 2px 6px rgba(0,0,0,0.3);
+}
+.promptos-btn:active { transform: translateY(0px); }
 .promptos-btn--busy { opacity: 0.6; pointer-events: none; }
-.promptos-btn__spark { font-size: 13px; }
+.promptos-btn__spark { font-size: 14px; }
 
 /* ── Toast notification ─────────────────────────────────────────────────── */
 

@@ -60,13 +60,6 @@ function createButton(): HTMLButtonElement {
   return btn;
 }
 
-/** Position the button at the top-right of the composer. */
-function positionButton(btn: HTMLElement, input: HTMLElement): void {
-  const rect = input.getBoundingClientRect();
-  btn.style.top = `${window.scrollY + rect.top + 8}px`;
-  btn.style.left = `${window.scrollX + rect.right - btn.offsetWidth - 12}px`;
-}
-
 function ensureButton(): void {
   if (!settings.showInlineButton) {
     removeButton();
@@ -84,10 +77,10 @@ function ensureButton(): void {
     btn = createButton();
     document.body.appendChild(btn);
   }
-  // Hide the button when the composer is empty to avoid clutter.
+  // Hide when composer is empty to avoid clutter.
   const hasText = readInput(input).trim().length > 0;
   btn.style.display = hasText ? "inline-flex" : "none";
-  if (hasText) positionButton(btn, input);
+  // No coordinate math — the button is fixed to the viewport corner via CSS.
 }
 
 function setButtonBusy(busy: boolean): void {
